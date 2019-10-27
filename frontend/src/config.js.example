@@ -1,0 +1,16 @@
+export const AWSRegion = "us-west-2";
+
+export const AWSCongitoAuth = {
+  region: AWSRegion,
+  identityPoolId: "us-west-2:10abcde1-a9bc-48ab-a2d3-8asd8sdfsdkl",
+  userPoolId: "us-west-2_abcABC123",
+  userPoolWebClientId: "123abcdef123456abcdef12345",
+};
+
+export const AWSCongitoS3Storage = {
+  region: AWSRegion,
+  bucket: "cognito-test-backet",
+};
+
+
+export const CUSTOM_AUTH_SERVER_URL = "http://localhost:8080";

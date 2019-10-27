@@ -1,0 +1,5 @@
+AWS_COGNITO_REGION = "us-west-2"
+AWS_COGNITO_IDENTITY_POOL_ID = "us-west-2:10abcde1-a9bc-48ab-a2d3-8asd8sdfsdkl"
+
+# Must be added in AWS as supported backend, example: http://take.ms/oC3xS
+MY_BACKEND_NAME = 'my_test_backend'

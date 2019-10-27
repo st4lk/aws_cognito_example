@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html<% if( htmlWebpackPlugin.files.manifest) { %> manifest="<%=  htmlWebpackPlugin.files.manifest %>"<% } %>>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <% if ( htmlWebpackPlugin.files.favicon) { %>
+        <link rel="shortcut icon" href="<%= htmlWebpackPlugin.files.favicon%>">
+    <% } %>
+  </head>
+  <body style="margin: 0">
+    <div id="app"></div>
+  </body>
+</html>

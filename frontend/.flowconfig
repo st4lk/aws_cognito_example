@@ -1,0 +1,12 @@
+[ignore]
+./dict/.*
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]
