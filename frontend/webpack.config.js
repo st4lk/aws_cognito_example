@@ -20,7 +20,7 @@ const config = {
     new CleanWebpackPlugin(["dist"]),
     new ExtractTextPlugin("assets/[name]-[contenthash].css"),
     new HtmlWebpackPlugin({
-      title: "Ergeon Self Scheduling App",
+      title: "Cognito Example App",
       template: "src/index.tmpl",
     }),
     new webpack.DefinePlugin({
