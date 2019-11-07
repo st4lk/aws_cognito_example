@@ -12,6 +12,33 @@ Amplify.configure({
 });
 
 
+function refreshToken(param) {
+  console.log('!!!! refreshToken is called !!!');
+  console.log(param);
+
+  return axios.post(`${CUSTOM_AUTH_SERVER_URL}/refresh`)
+    .then(response => {
+      console.log("Refresh returned successfully with custom service", response);
+      return {
+        token: response.data.cognito.Token,
+        identity_id: response.data.cognito.IdentityId,
+        expires_at: response.data.expires_at,
+      }
+    })
+    .catch(err => {
+      console.log("Error during custom refresh", err);
+    });
+}
+
+Auth.configure({
+    refreshHandlers: {
+
+        'developer': refreshToken // the property could be 'google', 'facebook', 'amazon', 'developer', OpenId domain
+    }
+})
+
+
+
 class App extends Component {
   state = {
     username: "",
@@ -153,6 +180,7 @@ class App extends Component {
           {
             token: response.data.cognito.Token,
             identity_id: response.data.cognito.IdentityId,
+            expires_at: response.data.expires_at,
           },
           {username: response.data.user.username},
         )

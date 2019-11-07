@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime, timedelta
 
 import boto3
 from bottle import route, request, response, run
@@ -53,6 +54,7 @@ def auth():
     response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
     if request.method == 'OPTIONS':
         return
+    print('=== Request to auth ===')
     print(dict(request.params))
     print(request.body.read())
     print(dict(request.forms))
@@ -89,7 +91,7 @@ def auth():
         return 'Bad request'
     cognito_response = cognito_client.get_open_id_token_for_developer_identity(
         IdentityPoolId=config.AWS_COGNITO_IDENTITY_POOL_ID,
-        # IdentityId='string',  # TODO: Not sure what the hell is this yet
+        # IdentityId='string',  # TODO: Not sure what is this yet
         Logins={
             config.MY_BACKEND_NAME: user_id,  # You can add more than one provider names here
                                               # Suppose you know the id in facebook for this user
@@ -97,6 +99,8 @@ def auth():
         },
         TokenDuration=10,  # in seconds, 15 minutes by default, max 24 hours
     )
+    # TODO: find how this expires_at and token expiration should be synced
+    expires_at = int((datetime.utcnow() + timedelta(seconds=10)).timestamp())
     response.content_type = 'application/json'
     response_data = {
         'local_token': '{0} {1}'.format(user_id, int(time.time())),
@@ -105,7 +109,52 @@ def auth():
             'username': user_data['email'],
         },
         'cognito': cognito_response,
+        'expires_at': expires_at,
     }
+    print('=== Producing resonse: ===')
+    print(json.dumps(response_data, indent=4))
+    return json.dumps(response_data)
+
+
+@route('/refresh', method=['POST', 'OPTIONS'])
+def refresh():
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    if request.method == 'OPTIONS':
+        return
+    print('=== Request to refresh ===')
+    print(dict(request.params))
+    print(request.body.read())
+    print(dict(request.forms))
+
+    # TODO: get user from request, it should be cookie/token
+    user_data = USERS[0]
+    user_id = user_data['id']
+
+    cognito_response = cognito_client.get_open_id_token_for_developer_identity(
+        IdentityPoolId=config.AWS_COGNITO_IDENTITY_POOL_ID,
+        # IdentityId='string',  # TODO: Not sure what is this yet
+        Logins={
+            config.MY_BACKEND_NAME: user_id,  # You can add more than one provider names here
+                                              # Suppose you know the id in facebook for this user
+                                              # You can pass it here as well
+        },
+        TokenDuration=10,  # in seconds, 15 minutes by default, max 24 hours
+    )
+    expires_at = int((datetime.utcnow() + timedelta(seconds=10)).timestamp())
+    response.content_type = 'application/json'
+    response_data = {
+        'local_token': '{0} {1}'.format(user_id, int(time.time())),
+        'user': {
+            'id': user_data['id'],
+            'username': user_data['email'],
+        },
+        'cognito': cognito_response,
+        'expires_at': expires_at,
+    }
+    print('=== Producing resonse: ===')
+    print(json.dumps(response_data, indent=4))
     return json.dumps(response_data)
 
 
