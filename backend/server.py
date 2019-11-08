@@ -1,8 +1,8 @@
 import json
 import time
-from datetime import datetime, timedelta
 
 import boto3
+import jwt
 from bottle import route, request, response, run
 
 import secrets
@@ -47,6 +47,32 @@ def get_user_by_id(user_id):
     return None
 
 
+def _get_response_for_user(user_data):
+    cognito_response = cognito_client.get_open_id_token_for_developer_identity(
+        IdentityPoolId=config.AWS_COGNITO_IDENTITY_POOL_ID,
+        # IdentityId='string',  # TODO: Not sure what is this yet
+        Logins={
+            # You can add more than one provider names here
+            # Suppose you know the id in facebook for this user
+            # You can pass it here as well
+            config.MY_BACKEND_NAME: user_data['id'],
+        },
+        TokenDuration=10,  # in seconds, 15 minutes by default, max 24 hours
+    )
+    cognito_token = cognito_response['Token']
+    congito_token_payload = jwt.decode(cognito_token, verify=False)
+    response.content_type = 'application/json'
+    return {
+        'local_token': '{0} {1}'.format(user_data['id'], int(time.time())),
+        'user': {
+            'id': user_data['id'],
+            'username': user_data['email'],
+        },
+        'cognito': cognito_response,
+        'expires_at': congito_token_payload['exp'],
+    }
+
+
 @route('/auth', method=['POST', 'OPTIONS'])
 def auth():
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -89,28 +115,7 @@ def auth():
     else:
         response.status = 400
         return 'Bad request'
-    cognito_response = cognito_client.get_open_id_token_for_developer_identity(
-        IdentityPoolId=config.AWS_COGNITO_IDENTITY_POOL_ID,
-        # IdentityId='string',  # TODO: Not sure what is this yet
-        Logins={
-            config.MY_BACKEND_NAME: user_id,  # You can add more than one provider names here
-                                              # Suppose you know the id in facebook for this user
-                                              # You can pass it here as well
-        },
-        TokenDuration=10,  # in seconds, 15 minutes by default, max 24 hours
-    )
-    # TODO: find how this expires_at and token expiration should be synced
-    expires_at = int((datetime.utcnow() + timedelta(seconds=10)).timestamp())
-    response.content_type = 'application/json'
-    response_data = {
-        'local_token': '{0} {1}'.format(user_id, int(time.time())),
-        'user': {
-            'id': user_data['id'],
-            'username': user_data['email'],
-        },
-        'cognito': cognito_response,
-        'expires_at': expires_at,
-    }
+    response_data = _get_response_for_user(user_data)
     print('=== Producing resonse: ===')
     print(json.dumps(response_data, indent=4))
     return json.dumps(response_data)
@@ -128,31 +133,9 @@ def refresh():
     print(request.body.read())
     print(dict(request.forms))
 
-    # TODO: get user from request, it should be cookie/token
+    # TODO: get user from request, it should be cookie/app_token
     user_data = USERS[0]
-    user_id = user_data['id']
-
-    cognito_response = cognito_client.get_open_id_token_for_developer_identity(
-        IdentityPoolId=config.AWS_COGNITO_IDENTITY_POOL_ID,
-        # IdentityId='string',  # TODO: Not sure what is this yet
-        Logins={
-            config.MY_BACKEND_NAME: user_id,  # You can add more than one provider names here
-                                              # Suppose you know the id in facebook for this user
-                                              # You can pass it here as well
-        },
-        TokenDuration=10,  # in seconds, 15 minutes by default, max 24 hours
-    )
-    expires_at = int((datetime.utcnow() + timedelta(seconds=10)).timestamp())
-    response.content_type = 'application/json'
-    response_data = {
-        'local_token': '{0} {1}'.format(user_id, int(time.time())),
-        'user': {
-            'id': user_data['id'],
-            'username': user_data['email'],
-        },
-        'cognito': cognito_response,
-        'expires_at': expires_at,
-    }
+    response_data = _get_response_for_user(user_data)
     print('=== Producing resonse: ===')
     print(json.dumps(response_data, indent=4))
     return json.dumps(response_data)
