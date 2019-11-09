@@ -1,6 +1,7 @@
 import Amplify, {API, Auth, Storage} from "aws-amplify";
 import React, {Component} from "react";
 import axios from "axios";
+import store from "store";
 
 import {AWSCongitoAuth, AWSCongitoS3Storage, AWSRegion, CUSTOM_AUTH_SERVER_URL} from "../config";
 
@@ -12,11 +13,16 @@ Amplify.configure({
 });
 
 
+const LOCAL_STORAGE = store.namespace("cognito-test");
+
+
 function refreshToken(param) {
   console.log('!!!! refreshToken is called !!!');
   console.log(param);
 
-  return axios.post(`${CUSTOM_AUTH_SERVER_URL}/refresh`)
+  const appToken = LOCAL_STORAGE.get("appToken");
+  console.log('Trying to refresh with appToken=', appToken);
+  return axios.post(`${CUSTOM_AUTH_SERVER_URL}/refresh`, {app_token: appToken})
     .then(response => {
       console.log("Refresh returned successfully with custom service", response);
       return {
@@ -172,8 +178,8 @@ class App extends Component {
     axios.post(`${CUSTOM_AUTH_SERVER_URL}/auth`, authData)
       .then(response => {
         console.log("User signed in successfully with custom service", response);
-        console.log("Local token", response.data.local_token);
-        // this.localStorage.set("localToken", response.data.local_token);
+        console.log("Local token", response.data.app_token);
+        LOCAL_STORAGE.set("appToken", response.data.app_token);
 
         Auth.federatedSignIn(
           "developer",
@@ -208,18 +214,13 @@ class App extends Component {
     return this.customAuth({username, password});
   }
 
-  refreshAuth = () => {
-    console.log("Starting custom refresh...");
-    // const localToken = this.localStorage.get("localToken");
-    return this.customAuth({token: localToken});
-  }
-
   onCustomSignOut = () => {
     console.log("Starting custom sign out...");
     Auth.signOut()
       .then(data => {
         console.log("User signed out successfully", data);
         this.clearState();
+        LOCAL_STORAGE.remove('appToken');
       })
       .catch(err => {
         console.log("Error during sign out", err);
@@ -244,14 +245,12 @@ class App extends Component {
             .catch(e => {
               console.log("=== Can't get current user ===");
               console.log(e);
-              // this.refreshAuth();  # TODO: check
             });
         }
       })
       .catch(e => {
         console.log("=== Session is not valid ===");
         console.log(e);
-        // this.refreshAuth();
       });
   }
 

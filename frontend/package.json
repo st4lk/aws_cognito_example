@@ -46,6 +46,7 @@
     "axios": "^0.19.0",
     "react": "^16.10.2",
     "react-dom": "^16.11.0",
-    "react-hot-loader": "^4.12.15"
+    "react-hot-loader": "^4.12.15",
+    "store": "^2.0.12"
   }
 }
