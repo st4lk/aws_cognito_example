@@ -79,6 +79,22 @@ Let's try to use our backend for auth, not the cognito.
 2. Enter `my_test_backend` into "Developer provider name" field. This value should be the same as `backend/config.py -> MY_BACKEND_NAME` variable
 3. Save changes
 
+### Step 3 (identity pool only)
+
+If all you need is to get temporal AWS credentials (authorization) without user authentication (and management) in Cognito User pool,
+then no need to create user pool at all.
+
+Let's start from scratch and create another Identity pool only.
+Follow points from Step 1 -> 3 (skip first two).
+We will have just `identity_id` as a result.
+
+Also, we need to define authentication providers. Since we have our server for authentication, let's use 'Custom'.
+Setup it in the same was as in Step 2.
+
+Now, comment (remove) `congito_id` and `congito_app_id` from frontend config and see, that custom auth will still work.
+
+
+
 Setup project
 -------------
 
