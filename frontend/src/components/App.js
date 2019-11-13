@@ -229,27 +229,27 @@ class App extends Component {
 
   showCurrentUser = () => {
     console.log("Trying to fetch current user...");
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        console.log("Current user is", user);
+        console.log("Start checking the credentials...");
+        this.setState({user});
+      })
+      .catch(e => {
+        console.log("=== Can't get current user ===");
+        console.log(e);
+      });
+
+    console.log("Trying to fetch credentials for a user...");
     Auth.currentCredentials()
       .then(credentials => {
         console.log("=== Got credentials ===");
         console.log(credentials);
         console.log(credentials.expired);
         console.log("=======================");
-        if (!credentials.expired) {
-          Auth.currentAuthenticatedUser()
-            .then(user => {
-              console.log("Current user is", user);
-              console.log("Start checking the credentials...");
-              this.setState({user});
-            })
-            .catch(e => {
-              console.log("=== Can't get current user ===");
-              console.log(e);
-            });
-        }
       })
       .catch(e => {
-        console.log("=== Session is not valid ===");
+        console.log("=== Can't get credentials ===");
         console.log(e);
       });
   }
