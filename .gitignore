@@ -176,3 +176,4 @@ backend/config.py
 backend/secrets.py
 
 task.TODO
+.serverless/

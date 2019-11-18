@@ -1,0 +1,34 @@
+# For full config options, check the docs:
+#    docs.serverless.com
+
+service: congito-lambda-2
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+package:
+  exclude:
+    - ./**
+  include:
+    - handler.py
+
+
+provider:
+  name: aws
+  region: us-west-2
+  stage: ${opt:stage, 'dev'}
+  runtime: python3.6
+
+functions:
+  cognitoMainHandler:
+    handler: handler.index
+    events:
+      - http:
+          path: main
+          method: get
+          cors: true
+          authorizer: aws_iam
+      - http:
+          path: main
+          method: post
+          cors: true
+          authorizer: aws_iam

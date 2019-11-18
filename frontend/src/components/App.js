@@ -3,13 +3,14 @@ import React, {Component} from "react";
 import axios from "axios";
 import store from "store";
 
-import {AWSCongitoAuth, AWSCongitoS3Storage, AWSRegion, CUSTOM_AUTH_SERVER_URL} from "../config";
+import {AWSCongitoAuth, AWSCongitoS3Storage, AWSRegion, AWSAPI, CUSTOM_AUTH_SERVER_URL} from "../config";
 
 Amplify.configure({
   Auth: AWSCongitoAuth,
   Storage: {
     AWSS3: AWSCongitoS3Storage,
-  }
+  },
+  API: AWSAPI,
 });
 
 
@@ -385,6 +386,21 @@ class App extends Component {
     });
   }
 
+  onCognitoMainHandlerCall = () => {
+    const apiName = "CognitoMainHandler";
+    const path = "/main";
+    const params = {"ab": 123};
+    // const params = null;
+    console.log("Calling API", apiName);
+    API.post(apiName, path, params).then(response => {
+      console.log("Response");
+      console.log(response);
+    }).catch(error => {
+      console.log("Error on Response");
+      console.log(error.response);
+    });
+  }
+
   render() {
     const currentUser = this.state.user;
     const currentUserName = currentUser ? currentUser.username : "Anonymous";
@@ -511,6 +527,13 @@ class App extends Component {
             <input id="privateImageKey" type="text" value={this.state.privateImageKey} onChange={this.handlePrivateImageKeyChanged} />
             <div><button onClick={this.onShowPrivateImage}>Show</button></div>
             {this.state.privateImageUrl && <img src={this.state.privateImageUrl} />}
+          </div>
+        </div>
+        <div>
+          <h2>Call Lambda</h2>
+          <div>
+            <h4>Call CognitoMainHandler</h4>
+            <div><button onClick={this.onCognitoMainHandlerCall}>Call</button></div>
           </div>
         </div>
       </div>
